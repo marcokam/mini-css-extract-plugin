@@ -168,10 +168,17 @@ class MiniCssExtractPlugin {
       });
       compilation.chunkTemplate.hooks.renderManifest.tap(pluginName, (result, { chunk }) => {
         const renderedModules = Array.from(chunk.modulesIterable).filter(module => module.type === MODULE_TYPE);
+        let filenameTemplate = this.options.chunkFilename;
+        if (chunk.hasEntryModule()) {
+          filenameTemplate = this.options.filename;
+        }
+        if (this.options.renamedChunks && this.options.renamedChunks[chunk.name] && typeof this.options.renamedChunks[chunk.name] === 'string') {
+          filenameTemplate = this.options.renamedChunks[chunk.name];
+        }
         if (renderedModules.length > 0) {
           result.push({
             render: () => this.renderContentAsset(compilation, chunk, renderedModules, compilation.runtimeTemplate.requestShortener),
-            filenameTemplate: chunk.hasEntryModule() ? this.options.filename : this.options.chunkFilename,
+            filenameTemplate,
             pathOptions: {
               chunk,
               contentHashType: MODULE_TYPE
